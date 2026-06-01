@@ -1,0 +1,102 @@
+name: GitHub Profile Premium Dashboard
+
+on:
+  schedule:
+    # Trigger automatically daily at midnight
+    - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # Job A: Generate the 3D Isometric City
+  generate-3d-contrib:
+    name: Generate 3D Isometric City
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate 3D contribution graph
+        uses: yoshi389111/github-profile-3d-contrib@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
+
+      - name: Upload 3D contribution artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-3d-contrib
+          path: profile-3d-contrib/
+          retention-days: 1
+
+  # Job B: Generate the Snake Game Animation
+  generate-snake:
+    name: Generate Snake Game
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate snake animation
+        uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            dist/github-snake.svg
+            dist/github-snake-dark.svg?palette=github-dark
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload snake artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-snake
+          path: dist/
+          retention-days: 1
+
+  # Job C: Gather all SVGs and cleanly deploy to the 'output' branch
+  deploy-assets:
+    name: Deploy generated assets to output branch
+    needs: [generate-3d-contrib, generate-snake]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create unified dist directory
+        run: mkdir -p dist
+
+      - name: Download 3D contribution SVGs
+        uses: actions/download-artifact@v4
+        with:
+          name: profile-3d-contrib
+          path: dist/profile-3d-contrib
+
+      - name: Download Snake game SVGs
+        uses: actions/download-artifact@v4
+        with:
+          name: github-snake
+          path: dist
+
+      - name: Clean and push to output branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd dist
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: automated profile dashboard updates [skip ci]"
+          git branch -M output
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git push --force origin output
