@@ -2,8 +2,8 @@ name: GitHub Profile Premium Dashboard
 
 on:
   schedule:
-    # Trigger automatically daily at midnight
-    - cron: "0 0 * * *"
+    # Trigger automatically daily at midnight local time (IST)
+    - cron: "30 18 * * *"
   push:
     branches:
       - main
