@@ -15,6 +15,13 @@
   <img src="https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white" alt="Git" />
 </p>
 
+<!-- Contact Info -->
+<p align="center">
+  <a href="mailto:geccodes@gmail.com">
+    <img src="https://img.shields.io/badge/Gmail-geccodes%40gmail.com-EA4335?style=flat-square&logo=gmail&logoColor=white" alt="Gmail" />
+  </a>
+</p>
+
 <br />
 
 <!-- Contribution Landscapes Section -->
